@@ -1,0 +1,130 @@
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "mlops-templates"
+version = "0.1.0"
+description = "A modular MLOps project template that integrates multiple tools for experiment tracking, model versioning, and pipeline orchestration."
+authors = ["RMN <no-reply@mail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{ include = "src" }]
+
+[tool.poe.tasks]
+black-check = "poetry run black --check --config pyproject.toml ./"
+isort-check = "poetry run isort --check-only --settings pyproject.toml ./"
+ruff-check = "poetry run ruff --config pyproject.toml check ./"
+mypy-check = "poetry run mypy --config-file pyproject.toml ./"
+black-format = "poetry run black --config pyproject.toml ./"
+isort-format = "poetry run isort --settings pyproject.toml ./"
+ruff-format = "poetry run ruff --config pyproject.toml format ./"
+check = ["black-check", "isort-check", "ruff-check"]
+hard-check = ["check", "mypy-check"]
+format = ["black-format", "isort-format", "ruff-format"]
+test = "poetry run pytest -c pyproject.toml --cov-report=html tests/"
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+torch = [
+    { platform = "darwin", url = "https://download.pytorch.org/whl/cpu/torch-2.7.0-cp312-none-macosx_11_0_arm64.whl" },
+    { platform = "linux", url = "https://download.pytorch.org/whl/cpu/torch-2.7.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl" },
+    { platform = "win32", url = "https://download.pytorch.org/whl/cu118/torch-2.7.0%2Bcu118-cp312-cp312-win_amd64.whl" }
+]
+
+[tool.poetry.group.dev.dependencies]
+poethepoet = "^0.33.1"
+pytest = "^8.3.5"
+pytest-asyncio = "^0.26.0"
+pytest-env = "^1.1.5"
+pytest-html = "^4.1.1"
+pytest-cov = "^4.1.0"
+black = "^25.1.0"
+isort = "^6.0.1"
+ruff = "^0.11.5"
+mypy = "^1.15.0"
+
+[tool.black]
+target-version = ["py312"]
+color = true
+line-length = 120
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+    | \.github
+    | \.idea
+    | \.mypy_cache
+    | \.ruff_cache
+    | \.venv
+    | build
+    | venv
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+known_first_party = ["plugger"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+lint.select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "C", # flake8-comprehensions
+    "B", # flake8-bugbear
+    "UP", # pyupgrade
+    "ANN", # flake8-annotations
+]
+lint.ignore = [
+    "E501", # line too long, handled by black
+    "ANN002", # Missing type annotation for *args
+    "ANN003", # Missing type annotation for **kwargs
+    "ANN204", # Missing type annotation for special methods
+    "ANN401", # Dynamically typed expressions (typing.Any) are disallowed in `*args/**kwargs`
+]
+exclude = [
+    ".git",
+    ".github",
+    ".idea",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "build",
+    "venv",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+python_version = 3.12
+color_output = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+env = []
+norecursedirs = [
+    ".git",
+    ".github",
+    ".idea",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "build",
+    "venv"
+]
+testpaths = ["tests"]
+addopts = [
+    "--strict-markers",
+    "--doctest-modules",
+    "--doctest-continue-on-failure"
+]
