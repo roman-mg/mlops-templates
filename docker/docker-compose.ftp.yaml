@@ -1,0 +1,16 @@
+services:
+  ftp:
+    image: fauria/vsftpd
+    container_name: ftp-server
+    restart: always
+    ports:
+      - "21:21"
+      - "21000-21010:21000-21010"
+    environment:
+      - FTP_USER=${FTP_USER}
+      - FTP_PASS=${FTP_PASS}
+      - PASV_ADDRESS=${PASV_ADDRESS}
+      - PASV_MIN_PORT=21000
+      - PASV_MAX_PORT=21010
+    volumes:
+      - ./ftpdata:/home/vsftpd
