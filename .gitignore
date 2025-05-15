@@ -1,5 +1,6 @@
 src/data/
 src/logs/
+src/outputs/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

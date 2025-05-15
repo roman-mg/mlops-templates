@@ -10,6 +10,8 @@ class MNISTDataModule(pl.LightningDataModule):
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.transform = transforms.ToTensor()
+        self.train = None
+        self.val = None
 
     def setup(self, stage: str | None = None) -> None:
         self.train = MNIST(self.data_dir, train=True, download=True, transform=self.transform)

@@ -1,14 +1,26 @@
+import logging
+
+import hydra
+from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import CSVLogger
 
 from datamodule import MNISTDataModule
-from models.classifier import LitClassifier
+from models.mlp import MLP
 
-if __name__ == "__main__":
-    model = LitClassifier()
+
+@hydra.main(config_path="../configs", config_name="config", version_base=None)
+def train(cfg: DictConfig):
+    logging.info(OmegaConf.to_yaml(cfg))
+
+    model = MLP(cfg.model.input_dim, cfg.model.hidden_dim, cfg.model.output_dim, cfg.trainer.lr)
     data = MNISTDataModule()
 
     logger = CSVLogger("./logs")  # temporary logger
 
-    trainer = Trainer(max_epochs=5, logger=logger)
+    trainer = Trainer(max_epochs=cfg.trainer.max_epochs, logger=logger)
     trainer.fit(model, datamodule=data)
+
+
+if __name__ == "__main__":
+    train()
