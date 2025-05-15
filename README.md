@@ -8,4 +8,5 @@ A modular MLOps project template that integrates multiple tools for experiment t
 - `mlflow.log_artifact` does not work
 - add clearml examples
 - add airflow examples
-- CI/CD ?
+- CI/CD ? maybe some k8s example
+- add support of audio project additionally to `MNIST`
