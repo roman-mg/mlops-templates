@@ -1,6 +1,6 @@
-src/checkpoints/
-src/data/
-src/logs/
+checkpoints/
+data/
+logs/
 src/outputs/
 
 # Byte-compiled / optimized / DLL files

@@ -3,7 +3,7 @@ import logging
 import hydra
 from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
-from pytorch_lightning import Trainer
+from pytorch_lightning import Trainer, seed_everything
 
 from utils.callbacks import ArtifactLoggerCallback
 
@@ -12,6 +12,7 @@ from utils.callbacks import ArtifactLoggerCallback
 def train(cfg: DictConfig) -> None:
     logging.info(OmegaConf.to_yaml(cfg))
 
+    seed_everything(cfg.seed)
     trainer = Trainer(
         max_epochs=cfg.trainer.max_epochs,
         logger=instantiate(cfg.logger),
