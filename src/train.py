@@ -10,7 +10,7 @@ from models.mlp import MLP
 
 
 @hydra.main(config_path="../configs", config_name="config", version_base=None)
-def train(cfg: DictConfig):
+def train(cfg: DictConfig) -> None:
     logging.info(OmegaConf.to_yaml(cfg))
 
     model = MLP(cfg.model.input_dim, cfg.model.hidden_dim, cfg.model.output_dim, cfg.trainer.lr)
