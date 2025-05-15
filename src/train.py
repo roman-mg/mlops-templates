@@ -5,8 +5,6 @@ from hydra.utils import instantiate
 from omegaconf import DictConfig, OmegaConf
 from pytorch_lightning import Trainer, seed_everything
 
-from utils.callbacks import ArtifactLoggerCallback
-
 
 @hydra.main(config_path="./configs", config_name="config", version_base=None)
 def train(cfg: DictConfig) -> None:
@@ -16,7 +14,7 @@ def train(cfg: DictConfig) -> None:
     trainer = Trainer(
         max_epochs=cfg.trainer.max_epochs,
         logger=instantiate(cfg.logger),
-        callbacks=[instantiate(cfg.checkpoint), ArtifactLoggerCallback()],
+        callbacks=[instantiate(cfg.checkpoint)],
     )
     trainer.fit(instantiate(cfg.model), datamodule=instantiate(cfg.datamodule))
 
