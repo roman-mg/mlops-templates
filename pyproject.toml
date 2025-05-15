@@ -26,6 +26,8 @@ test = "poetry run pytest -c pyproject.toml --cov-report=html tests/"
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
+pandas = "^2.2.3"
+soundfile = "^0.13.1"
 torch = [
     { platform = "darwin", url = "https://download.pytorch.org/whl/cpu/torch-2.7.0-cp312-none-macosx_11_0_arm64.whl" },
     { platform = "linux", url = "https://download.pytorch.org/whl/cpu/torch-2.7.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl" },
