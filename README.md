@@ -13,5 +13,6 @@ A modular MLOps project template that integrates multiple tools for experiment t
 - add clearml examples
 - add airflow examples
 - CI/CD? maybe some k8s example
+- add different model deployments
 - add support of audio project additionally to `MNIST`
 - test `src/utils/callbacks.py`
