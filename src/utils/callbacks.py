@@ -9,7 +9,7 @@ from pytorch_lightning.loggers import MLFlowLogger, TensorBoardLogger, WandbLogg
 
 
 class ArtifactLoggerCallback(Callback):
-    def __init__(self, extra_artifacts: list[str] = None):
+    def __init__(self, extra_artifacts: list[str] | None = None):
         super().__init__()
         self.extra_artifacts = extra_artifacts or []
         for path in self.extra_artifacts:
@@ -28,33 +28,33 @@ class ArtifactLoggerCallback(Callback):
                     with open(path, "w") as f:
                         f.write(df.to_string(index=False))
                 case ".wav" | ".flac" | ".ogg":
-                    audio_data, sample_rate = pl_module.generate_audio()
+                    # TODO: extend to audio-project example
+                    audio_data, sample_rate = pl_module.generate_audio()  # type: ignore[operator]
                     sf.write(path, audio_data, sample_rate)
                 case _:
                     pass
 
         if isinstance(trainer.logger, TensorBoardLogger):
             for k, v in trainer.callback_metrics.items():
-                if isinstance(v, (int, float)):
+                if isinstance(v, int | float):
                     trainer.logger.experiment.add_scalar(k, v, global_step=trainer.global_step)
 
     def on_save_checkpoint(self, trainer: Trainer, pl_module: LightningModule, checkpoint: dict) -> None:
-        checkpoint_cb = next((cb for cb in trainer.callbacks if isinstance(cb, ModelCheckpoint)), None)
+        checkpoint_cb = next((cb for cb in trainer.callbacks if isinstance(cb, ModelCheckpoint)), None)  # type: ignore[attr-defined]
         if not checkpoint_cb:
             return
 
-        checkpoint_path = checkpoint_cb.best_model_path if checkpoint_cb else None
-        os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+        os.makedirs(os.path.dirname(checkpoint_cb.best_model_path), exist_ok=True)
 
         if isinstance(trainer.logger, MLFlowLogger):
             if mlflow.active_run():
-                mlflow.log_artifact(checkpoint_path, artifact_path="checkpoints")
+                mlflow.log_artifact(checkpoint_cb.best_model_path, artifact_path="checkpoints")
                 for file_path in self.extra_artifacts:
                     if os.path.exists(file_path):
                         mlflow.log_artifact(file_path, artifact_path="artifacts")
         elif isinstance(trainer.logger, WandbLogger):
             run = trainer.logger.experiment
-            run.save(checkpoint_path, base_path=os.getcwd())
+            run.save(checkpoint_cb.best_model_path, base_path=os.getcwd())
             for file_path in self.extra_artifacts:
                 if os.path.exists(file_path):
                     run.save(file_path, base_path=os.getcwd())
