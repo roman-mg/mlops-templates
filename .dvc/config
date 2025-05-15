@@ -1,0 +1,4 @@
+[core]
+    remote = sftp_remote
+['remote "sftp_remote"']
+    url = ssh://server@192.168.100.38:/home/server/dvc-storage
