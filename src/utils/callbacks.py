@@ -51,13 +51,11 @@ class RemoteModelCheckpoint(ModelCheckpoint):
         if isinstance(trainer.logger, MLFlowLogger):
             mlflow.set_tracking_uri(trainer.logger._tracking_uri)
             with mlflow.start_run(run_id=trainer.logger.run_id):
-                mlflow.log_artifact(path, artifact_path="checkpoints", run_id=trainer.logger.run_id)
                 for file_path in self.extra_artifacts:
                     if os.path.exists(file_path):
                         mlflow.log_artifact(file_path, artifact_path="artifacts", run_id=trainer.logger.run_id)
         elif isinstance(trainer.logger, WandbLogger):
             run = trainer.logger.experiment
-            run.save(path, base_path=os.getcwd())
             for file_path in self.extra_artifacts:
                 if os.path.exists(file_path):
                     run.save(file_path, base_path=os.getcwd())
