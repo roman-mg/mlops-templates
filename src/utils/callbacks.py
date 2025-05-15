@@ -8,6 +8,33 @@ from pytorch_lightning.callbacks import Callback, ModelCheckpoint
 from pytorch_lightning.loggers import MLFlowLogger, TensorBoardLogger, WandbLogger
 
 
+class RemoteModelCheckpoint(ModelCheckpoint):
+    def _save_checkpoint(self, trainer: Trainer, filepath: str) -> None:
+        super()._save_checkpoint(trainer, filepath)
+
+        path = self.last_model_path or self.best_model_path
+        if not path or not os.path.exists(path):
+            return
+
+        if isinstance(trainer.logger, MLFlowLogger):
+            mlflow.set_tracking_uri(trainer.logger._tracking_uri)
+            with mlflow.start_run(run_id=trainer.logger.run_id):
+                mlflow.log_artifact(path, artifact_path="checkpoints", run_id=trainer.logger.run_id)
+                # for file_path in self.extra_artifacts:
+                #     if os.path.exists(file_path):
+                #         mlflow.log_artifact(file_path, artifact_path="artifacts")
+        elif isinstance(trainer.logger, WandbLogger):
+            run = trainer.logger.experiment
+            run.save(path, base_path=os.getcwd())
+            # for file_path in self.extra_artifacts:
+            #     if os.path.exists(file_path):
+            #         run.save(file_path, base_path=os.getcwd())
+        elif isinstance(trainer.logger, TensorBoardLogger):
+            pass
+        else:
+            pass
+
+
 class ArtifactLoggerCallback(Callback):
     def __init__(self, extra_artifacts: list[str] | None = None):
         super().__init__()
@@ -38,27 +65,3 @@ class ArtifactLoggerCallback(Callback):
             for k, v in trainer.callback_metrics.items():
                 if isinstance(v, int | float):
                     trainer.logger.experiment.add_scalar(k, v, global_step=trainer.global_step)
-
-    def on_save_checkpoint(self, trainer: Trainer, pl_module: LightningModule, checkpoint: dict) -> None:
-        checkpoint_cb = next((cb for cb in trainer.callbacks if isinstance(cb, ModelCheckpoint)), None)  # type: ignore[attr-defined]
-        if not checkpoint_cb:
-            return
-
-        os.makedirs(os.path.dirname(checkpoint_cb.best_model_path), exist_ok=True)
-
-        if isinstance(trainer.logger, MLFlowLogger):
-            if mlflow.active_run():
-                mlflow.log_artifact(checkpoint_cb.best_model_path, artifact_path="checkpoints")
-                for file_path in self.extra_artifacts:
-                    if os.path.exists(file_path):
-                        mlflow.log_artifact(file_path, artifact_path="artifacts")
-        elif isinstance(trainer.logger, WandbLogger):
-            run = trainer.logger.experiment
-            run.save(checkpoint_cb.best_model_path, base_path=os.getcwd())
-            for file_path in self.extra_artifacts:
-                if os.path.exists(file_path):
-                    run.save(file_path, base_path=os.getcwd())
-        elif isinstance(trainer.logger, TensorBoardLogger):
-            pass
-        else:
-            pass

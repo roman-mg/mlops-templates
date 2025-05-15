@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - logger: tensorboard
+  - logger: mlflow
 
 datamodule:
   _target_: src.datamodules.mnist_datamodule.MNISTDataModule
@@ -16,7 +16,7 @@ model:
   lr: 0.001
 
 checkpoint:
-  _target_: pytorch_lightning.callbacks.ModelCheckpoint
+  _target_: src.utils.callbacks.RemoteModelCheckpoint
   monitor: val_loss
   mode: min
   save_top_k: 1

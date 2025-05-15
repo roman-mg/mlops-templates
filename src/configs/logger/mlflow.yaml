@@ -1,3 +1,3 @@
 _target_: pytorch_lightning.loggers.MLFlowLogger
-experiment_name: my-experiment
-tracking_uri: file:../logs
+experiment_name: my-experiment2
+tracking_uri: http://192.168.100.38:5000

@@ -5,6 +5,7 @@ A modular MLOps project template that integrates multiple tools for experiment t
 - test `wnb` with API KEY
 - use `sftp` as `dvc remote`
 - fix `mlflow` docker-compose file (issue with container paths)
+- `mlflow.log_artifact` does not work
 - add clearml examples
 - add airflow examples
 - CI/CD ?
