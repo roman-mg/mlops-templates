@@ -9,10 +9,13 @@ A modular MLOps project template that integrates multiple tools for experiment t
 - test `wnb` with API KEY
 ### DVC
 - use `sftp` as `dvc remote`
+### Clearml
+- deploy and test
+### Airflow
+- add some dags & pipelines
 ### Other
-- add clearml examples
-- add airflow examples
+- add Kubeflow example
 - CI/CD? maybe some k8s example
-- add different model deployments
+- inference/deployment
 - add support of audio project additionally to `MNIST`
-- test `src/utils/callbacks.py`
+- test deeply `src/utils/callbacks.py`
