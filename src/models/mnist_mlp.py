@@ -1,9 +1,8 @@
 import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
+from pytorch_lightning.utilities.types import OptimizerLRScheduler
 from torch import nn
-from torch.optim.lr_scheduler import LRScheduler
-from torch.optim.optimizer import Optimizer
 
 
 class MLP(pl.LightningModule):
@@ -30,10 +29,8 @@ class MLP(pl.LightningModule):
         self.log("val_loss", loss, prog_bar=True)
         self.log("val_acc", acc, prog_bar=True)
 
-    def configure_optimizers(self) -> dict[str, Optimizer | LRScheduler]:
+    def configure_optimizers(self) -> OptimizerLRScheduler:
         optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)  # type: ignore[attr-defined]
-        scheduler = torch.optim.lr_scheduler.ExponentialLR(
-            optimizer, gamma=self.hparams.get("lr_decay", 1.0)
-        )
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=self.hparams.get("lr_decay", 1.0))
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}

@@ -29,7 +29,7 @@ def train(cfg: DictConfig) -> None:
         accelerator=cfg.trainer.accelerator,
         devices=cfg.trainer.devices,
     )
-    trainer.fit(instantiate(cfg.model), datamodule=instantiate(cfg.datamodule))
+    trainer.fit(instantiate(cfg.model), datamodule=instantiate(cfg.datamodule), ckpt_path=cfg.trainer.ckpt_path)
 
 
 if __name__ == "__main__":

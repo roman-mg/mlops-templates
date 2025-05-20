@@ -4,6 +4,7 @@ from pathlib import Path
 import mlflow
 import pandas as pd
 import soundfile as sf
+import wandb
 from clearml import Task
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -52,22 +53,31 @@ class RemoteModelCheckpoint(ModelCheckpoint):
             return
 
         if isinstance(trainer.logger, MLFlowLogger):
-            mlflow.set_tracking_uri(trainer.logger._tracking_uri)
-            with mlflow.start_run(run_id=trainer.logger.run_id):
-                for file_path in self.extra_artifacts:
-                    if os.path.exists(file_path):
-                        mlflow.log_artifact(file_path, artifact_path="artifacts", run_id=trainer.logger.run_id)
+            self.__save_mlflow_artifacts(trainer)
         elif isinstance(trainer.logger, WandbLogger):
-            run = trainer.logger.experiment
-            for file_path in self.extra_artifacts:
-                if os.path.exists(file_path):
-                    run.save(file_path, base_path=os.getcwd())
+            self.__save_wandb_artifacts(trainer)
         elif isinstance(trainer.logger, TensorBoardLogger):
             pass
         else:
             if self.clearml_task is not None:
-                self.clearml_task.upload_artifact(name="checkpoint", artifact_object=path)
-                for file_path in self.extra_artifacts:
-                    if os.path.exists(file_path):
-                        artifact_name = Path(file_path).stem
-                        self.clearml_task.upload_artifact(name=artifact_name, artifact_object=file_path)
+                self.__save_clearml_artifacts(path)
+
+    def __save_mlflow_artifacts(self, trainer: Trainer) -> None:
+        mlflow.set_tracking_uri(trainer.logger._tracking_uri)  # type: ignore[union-attr]
+        with mlflow.start_run(run_id=trainer.logger.run_id):  # type: ignore[union-attr]
+            for file_path in self.extra_artifacts:
+                if os.path.exists(file_path):
+                    mlflow.log_artifact(file_path, artifact_path=Path(file_path).stem, run_id=trainer.logger.run_id)  # type: ignore[union-attr]
+
+    def __save_wandb_artifacts(self, trainer: Trainer) -> None:
+        for file_path in self.extra_artifacts:
+            if os.path.exists(file_path):
+                artifact = wandb.Artifact(name=Path(file_path).stem, type="other")
+                artifact.add_file(file_path, name="model.ckpt")
+                trainer.logger.experiment.log_artifact(artifact)  # type: ignore[union-attr]
+
+    def __save_clearml_artifacts(self, ckpt_path: str) -> None:
+        self.clearml_task.upload_artifact(name="checkpoint", artifact_object=ckpt_path)
+        for file_path in self.extra_artifacts:
+            if os.path.exists(file_path):
+                self.clearml_task.upload_artifact(name=Path(file_path).stem, artifact_object=file_path)

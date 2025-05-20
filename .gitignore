@@ -133,6 +133,7 @@ celerybeat.pid
 
 # Environments
 docker/.env
+docker/clearml-server/
 .env
 .venv
 env/

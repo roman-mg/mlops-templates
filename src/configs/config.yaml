@@ -29,5 +29,6 @@ trainer:
   max_epochs: 5
   accelerator: auto
   devices: 1
+  ckpt_path:
 
 seed: 42
