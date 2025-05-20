@@ -1,47 +1,99 @@
 version: '3.8'
 
 services:
+  init-folders:
+    image: alpine:3.18
+    command: sh -c "mkdir -p /app/dags /app/logs /app/plugins && chmod -R 777 /app"
+    volumes:
+      - ./dags:/app/dags
+      - ./logs:/app/logs
+      - ./plugins:/app/plugins
+
   postgres:
+    container_name: airflow-postgres
     image: postgres:13
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres-db-volume:/var/lib/postgresql/data
 
-  airflow-webserver:
+  airflow-init:
     image: apache/airflow:2.7.2
-    restart: always
     depends_on:
       - postgres
+    env_file:
+      - .env
     environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
-      AIRFLOW__WEBSERVER__SECRET_KEY: my_secret_key
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
+    entrypoint: >
+      bash -c "
+        echo 'Waiting for PostgreSQL...' &&
+        while ! pg_isready -h postgres -p 5432 > /dev/null 2>&1; do sleep 1; done &&
+        echo 'PostgreSQL is ready!' &&
+        airflow db migrate &&
+        USER_EXISTS=$(airflow users list | grep -c '^admin') &&
+        if [ \"$USER_EXISTS\" -eq 0 ]; then
+          echo 'Creating admin user...' &&
+          airflow users create \
+            --username \"$AIRFLOW_ADMIN_USERNAME\" \
+            --password \"$AIRFLOW_ADMIN_PASSWORD\" \
+            --firstname \"$AIRFLOW_ADMIN_FIRSTNAME\" \
+            --lastname \"$AIRFLOW_ADMIN_LASTNAME\" \
+            --role Admin \
+            --email \"$AIRFLOW_ADMIN_EMAIL\";
+        else
+          echo 'Admin user already exists. Skipping creation.';
+        fi
+      "
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
-      - /var/run/docker.sock:/var/run/docker.sock  # for DockerOperator
-    ports:
-      - "8080:8080"
-    command: webserver
 
-  airflow-scheduler:
+  airflow-webserver:
+    container_name: airflow-webserver
     image: apache/airflow:2.7.2
     restart: always
     depends_on:
+      - init-folders
       - postgres
+      - airflow-init
+    env_file:
+      - .env
     environment:
-      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
+    ports:
+      - "8080:8080"
+    command: webserver
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock
+
+  airflow-scheduler:
+    container_name: airflow-scheduler
+    image: apache/airflow:2.7.2
+    restart: always
+    depends_on:
+      - postgres
+      - airflow-init
+    env_file:
+      - .env
+    environment:
+      AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
+      AIRFLOW__WEBSERVER__SECRET_KEY: ${AIRFLOW__WEBSERVER__SECRET_KEY}
     command: scheduler
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
 
 volumes:
   postgres-db-volume:
