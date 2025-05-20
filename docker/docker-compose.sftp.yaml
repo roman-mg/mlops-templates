@@ -1,7 +1,7 @@
 services:
   ftp:
     image: fauria/vsftpd
-    container_name: ftp-server
+    container_name: sftp
     restart: always
     ports:
       - "21:21"

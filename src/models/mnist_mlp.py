@@ -2,11 +2,12 @@ import pytorch_lightning as pl
 import torch
 import torch.nn.functional as F
 from torch import nn
+from torch.optim.lr_scheduler import LRScheduler
 from torch.optim.optimizer import Optimizer
 
 
 class MLP(pl.LightningModule):
-    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, lr: float) -> None:
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int, lr: float, lr_decay: float) -> None:
         super().__init__()
         self.save_hyperparameters()
         self.model = nn.Sequential(nn.Linear(input_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, output_dim))
@@ -29,5 +30,10 @@ class MLP(pl.LightningModule):
         self.log("val_loss", loss, prog_bar=True)
         self.log("val_acc", acc, prog_bar=True)
 
-    def configure_optimizers(self) -> Optimizer:
-        return torch.optim.Adam(self.parameters(), lr=self.hparams.lr)  # type: ignore[attr-defined]
+    def configure_optimizers(self) -> dict[str, Optimizer | LRScheduler]:
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.hparams.lr)  # type: ignore[attr-defined]
+        scheduler = torch.optim.lr_scheduler.ExponentialLR(
+            optimizer, gamma=self.hparams.get("lr_decay", 1.0)
+        )
+
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}

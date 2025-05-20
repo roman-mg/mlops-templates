@@ -1,8 +1,10 @@
 import os
+from pathlib import Path
 
 import mlflow
 import pandas as pd
 import soundfile as sf
+from clearml import Task
 from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint
 from pytorch_lightning.loggers import MLFlowLogger, TensorBoardLogger, WandbLogger
@@ -11,6 +13,7 @@ from pytorch_lightning.loggers import MLFlowLogger, TensorBoardLogger, WandbLogg
 class RemoteModelCheckpoint(ModelCheckpoint):
     def __init__(self, extra_artifacts: list[str] | None = None, **kwargs):
         super().__init__(**kwargs)
+        self.clearml_task = Task.current_task()
         self.extra_artifacts = extra_artifacts or []
         for path in self.extra_artifacts:
             os.makedirs(os.path.dirname(path), exist_ok=True)
@@ -62,4 +65,9 @@ class RemoteModelCheckpoint(ModelCheckpoint):
         elif isinstance(trainer.logger, TensorBoardLogger):
             pass
         else:
-            pass
+            if self.clearml_task is not None:
+                self.clearml_task.upload_artifact(name="checkpoint", artifact_object=path)
+                for file_path in self.extra_artifacts:
+                    if os.path.exists(file_path):
+                        artifact_name = Path(file_path).stem
+                        self.clearml_task.upload_artifact(name=artifact_name, artifact_object=file_path)
