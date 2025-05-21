@@ -12,6 +12,7 @@ services:
   postgres:
     container_name: airflow-postgres
     image: postgres:13
+    restart: always
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -67,7 +68,7 @@ services:
       AIRFLOW__CORE__EXECUTOR: ${AIRFLOW__CORE__EXECUTOR}
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}/${POSTGRES_DB}
     ports:
-      - "8080:8080"
+      - "9090:8080"
     command: webserver
     volumes:
       - ./dags:/opt/airflow/dags

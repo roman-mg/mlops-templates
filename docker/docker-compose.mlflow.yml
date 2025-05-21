@@ -1,0 +1,18 @@
+services:
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://0.0.0.0:5000
+    volumes:
+      - ./mlflow:/mlflow
+    entrypoint: /bin/sh -c "
+      mkdir -p /mlflow && \
+      touch /mlflow/mlflow.db && \
+      mlflow server \
+      --backend-store-uri sqlite:///mlflow/mlflow.db \
+      --default-artifact-root file:/mlflow/mlruns \
+      --host 0.0.0.0"
