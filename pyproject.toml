@@ -30,12 +30,12 @@ python-dotenv = "^1.1.0"
 pandas = "^2.2.3"
 soundfile = "^0.13.1"
 torch = [
-    { platform = "darwin", url = "https://download.pytorch.org/whl/cpu/torch-2.7.0-cp312-none-macosx_11_0_arm64.whl" },
-    { platform = "linux", url = "https://download.pytorch.org/whl/cpu/torch-2.7.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl" },
-    { platform = "win32", url = "https://download.pytorch.org/whl/cu118/torch-2.7.0%2Bcu118-cp312-cp312-win_amd64.whl" }
+    { platform = "darwin", url = "https://download.pytorch.org/whl/cpu/torch-2.8.0-cp312-none-macosx_11_0_arm64.whl" },
+    { platform = "linux", url = "https://download.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl" },
+    { platform = "win32", url = "https://download.pytorch.org/whl/cu126/torch-2.8.0%2Bcu126-cp312-cp312-win_amd64.whl" }
 ]
-torchaudio = "^2.7.0"
-torchvision = "^0.22.0"
+torchaudio = "^2.8.0"
+torchvision = "^0.23.0"
 lightning = "^2.5.1.post0"
 transformers = "^4.51.3"
 diffusers = "^0.33.1"
@@ -48,6 +48,9 @@ dvc = {extras = ["ssh"], version = "^3.59.2"}
 apache-airflow = "2.11.0"
 paramiko = "^3.5.1"
 kfp = "^2.13.0"
+onnx = "^1.19.1"
+onnxruntime = "^1.23.2"
+vllm = "^0.11.0"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.33.1"

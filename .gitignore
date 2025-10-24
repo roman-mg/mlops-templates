@@ -1,5 +1,6 @@
 checkpoints/
 logs/
+example_scripts/outputs/
 src/outputs/
 
 # Byte-compiled / optimized / DLL files
