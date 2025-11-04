@@ -52,6 +52,7 @@ onnx = "^1.19.1"
 onnxruntime = "^1.23.2"
 vllm = "^0.11.0"
 langfuse = "^3.9.0"
+opensearch-py = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
 poethepoet = "^0.33.1"
